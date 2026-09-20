@@ -2,6 +2,13 @@ import math
 import random
 import matplotlib.pyplot as plt
 
+#core explanation!
+#run normal() runs all 3 functions with (neighborhood =0.5, T0=1.0, decay =0.1)
+#algo runs 1 time only ^^ with seed =42
+#run_fine_tuned() runs with optimizations
+#algo runs 5 times for each function! seed = 42+run_number (42, 43, 44, 45, 46)
+# by this, our algos evalute out of all 5 runs which one gives lowest f(x,y) value
+
 
 #core 3 functions stated in the file
 def booth_function(x, y):
