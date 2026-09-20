@@ -1,0 +1,91 @@
+The images created were based on the first final iteration i ran
+TERMINAL OUTPUTS
+RUNNING WITH NORMAL DEFAULTS
+
+==================================================
+Running Booth Normal
+==================================================
+Normal Parameters Used:
+  neighborhood_size: 0.5
+  starting_temperature: 1.0
+  cooling_amount: 0.1
+  iterations_per_temperature: 100
+------------------------------
+Best x = 1.000414
+Best y = 3.008046
+Best f(x,y) = 0.0003511585
+Best found at iteration = 222
+Temperature at best = 0.8
+Graph saved as: booth_normal_simulated_annealing.png
+
+==================================================
+Running Himmelblau Normal
+==================================================
+Normal Parameters Used:
+  neighborhood_size: 0.5
+  starting_temperature: 1.0
+  cooling_amount: 0.1
+  iterations_per_temperature: 100
+------------------------------
+Best x = 3.567178
+Best y = -1.863332
+Best f(x,y) = 0.0207378974
+Best found at iteration = 202
+Temperature at best = 0.8
+Graph saved as: himmelblau_normal_simulated_annealing.png
+
+==================================================
+Running Griewank Normal
+==================================================
+Normal Parameters Used:
+  neighborhood_size: 0.5
+  starting_temperature: 1.0
+  cooling_amount: 0.1
+  iterations_per_temperature: 100
+------------------------------
+Best x = 9.341632
+Best y = -22.285984
+Best f(x,y) = 0.1507132878
+Best found at iteration = 343
+Temperature at best = 0.7
+Graph saved as: griewank_normal_simulated_annealing.png
+FINE-TUNED PARAMETERS (5 Restarts)
+Running Booth Finetuned
+Fine-tuned Parameters Used:
+  neighborhood_size: 0.25
+  starting_temperature: 5.0
+  cooling_amount: 0.05
+  iterations_per_temperature: 100
+------------------------------
+Best x = 1.002040
+Best y = 2.996001
+Best f(x,y) = 0.0000354929
+Best found at iteration = 9059
+Temperature at best = 0.5
+Graph saved as: booth_finetuned_simulated_annealing.png
+Running Himmelblau Finetuned
+Fine-tuned Parameters Used:
+  neighborhood_size: 0.25
+  starting_temperature: 5.0
+  cooling_amount: 0.05
+  iterations_per_temperature: 100
+------------------------------
+Best x = 3.584141
+Best y = -1.847611
+Best f(x,y) = 0.0000071828
+Best found at iteration = 8169
+Temperature at best = 0.9
+Graph saved as: himmelblau_finetuned_simulated_annealing.png
+Running Griewank Finetuned
+Fine-tuned Parameters Used:
+  neighborhood_size: 1.0
+  starting_temperature: 5.0
+  cooling_amount: 0.05
+  iterations_per_temperature: 100
+------------------------------
+Best x = -0.001930
+Best y = 0.099011
+Best f(x,y) = 0.0024540835
+Best found at iteration = 7643
+Temperature at best = 1.2
+Graph saved as: griewank_finetuned_simulated_annealing.png
