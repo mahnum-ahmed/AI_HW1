@@ -2,6 +2,10 @@ import math
 import random
 import matplotlib.pyplot as plt
 
+
+#pushed my generate iamges in the qs2_images folder but when u run the code it will generate here
+#PS: read the note.txt folder in the qs2_images folder
+
 #core explanation!
 #run normal() runs all 3 functions with (neighborhood =0.5, T0=1.0, decay =0.1)
 #algo runs 1 time only ^^ with seed =42
@@ -20,39 +24,18 @@ def himmelblau_function(x, y):
 
 
 def griewank_function(x, y):
-    return (
-        1
-        + (x ** 2 + y ** 2) / 4000
-        - math.cos(x) * math.cos(y / math.sqrt(2))
-    )
-
-
+    return (1 + (x ** 2 + y ** 2) / 4000 - math.cos(x) * math.cos(y / math.sqrt(2)))
 #used to generate the values close to the current value
-def generate_neighbor(
-    current_x,
-    current_y,
-    lower_bound,
-    upper_bound,
-    neighborhood_size,
-    random_generator
+def generate_neighbor(current_x, current_y, lower_bound, upper_bound, neighborhood_size, random_generator
 ):
     """
-    Generate a nearby point.
-
     neighborhood_size = 0.5 means x and y can each change
     by a random value between -0.5 and +0.5.
     """
 
     while True:
-        change_in_x = random_generator.uniform(
-            -neighborhood_size,
-            neighborhood_size
-        )
-
-        change_in_y = random_generator.uniform(
-            -neighborhood_size,
-            neighborhood_size
-        )
+        change_in_x = random_generator.uniform(-neighborhood_size, neighborhood_size)
+        change_in_y = random_generator.uniform(-neighborhood_size, neighborhood_size)
 
         candidate_x = current_x + change_in_x
         candidate_y = current_y + change_in_y
@@ -65,28 +48,21 @@ def generate_neighbor(
             return candidate_x, candidate_y
 
 #sa implementation
-def simulated_annealing(
-    objective_function,
-    bounds,
-    mode="min",
-    neighborhood_size=0.5,
-    starting_temperature=1.0,
-    cooling_amount=0.1,
-    iterations_per_temperature=100,
-    seed=None
-):
+def simulated_annealing(objective_function, bounds, mode="min", neighborhood_size=0.5,
+    starting_temperature=1.0, cooling_amount=0.1, iterations_per_temperature=100,
+    seed=None):
     """
-    Apply Simulated Annealing to a two-variable function.
-
+    SA application
     Parameters from assignment:
-        neighborhood_size = 0.5
-        starting_temperature = 1.0
-        cooling_amount = 0.1
-        iterations_per_temperature = 100
+
+    neighborhood_size = 0.5
+    starting_temperature = 1.0
+    cooling_amount = 0.1
+    iterations_per_temperature = 100
 
     mode:
         "min" finds a minimum
-        "max" finds a maximum
+        "max" finds a maximum (we choose min in this algo!)
     """
 
     if mode not in ("min", "max"):
@@ -99,20 +75,10 @@ def simulated_annealing(
 
     #random solution geenrator
 
-    current_x = random_generator.uniform(
-        lower_bound,
-        upper_bound
-    )
+    current_x = random_generator.uniform(lower_bound, upper_bound)
+    current_y = random_generator.uniform(lower_bound, upper_bound)
 
-    current_y = random_generator.uniform(
-        lower_bound,
-        upper_bound
-    )
-
-    current_value = objective_function(
-        current_x,
-        current_y
-    )
+    current_value = objective_function(current_x, current_y)
 
     #at start, the current solution is also the best.
     best_x = current_x
@@ -171,15 +137,11 @@ def simulated_annealing(
 
             else:
                 #worse candidate: calculate acceptance probability by the formula
-                acceptance_probability = math.exp(
-                    -loss / temperature
-                )
+                acceptance_probability = math.exp(-loss / temperature)
 
                 random_number = random_generator.random()
 
-                accept_candidate = (
-                    random_number < acceptance_probability
-                )
+                accept_candidate = (random_number < acceptance_probability)
 
             #update current solution if accepted
 
@@ -211,41 +173,19 @@ def simulated_annealing(
 
         #reduce temperature after K iterations
 
-        temperature = round(
-            temperature - cooling_amount,
-            10
-        )
+        temperature = round(temperature - cooling_amount, 10)
 
     # Return the answer and all recorded graph data.
-    return {
-        "best_x": best_x,
-        "best_y": best_y,
-        "best_value": best_value,
-
-        "iterations": iteration_history,
-        "x_history": x_history,
-        "y_history": y_history,
-        "objective_history": objective_history,
-        "best_history": best_history,
-        "temperature_history": temperature_history
-    }
+    return {"best_x": best_x, "best_y": best_y,"best_value": best_value,
+        "iterations": iteration_history, "x_history": x_history,
+        "y_history": y_history, "objective_history": objective_history,
+        "best_history": best_history, "temperature_history": temperature_history}
 
 
 #optional repeat because sa is random
 #forpart 3 of assignment
 
-def run_with_restarts(
-    objective_function,
-    bounds,
-    mode="min",
-    number_of_runs=1,
-    base_seed=42
-):
-    """
-    Run Simulated Annealing several times and keep the best run.
-
-    This is helpful because Simulated Annealing is random.
-    """
+def run_with_restarts(objective_function, bounds, mode="min", number_of_runs=1, base_seed=42):
 
     best_result = None
 
@@ -282,45 +222,22 @@ def run_with_restarts(
 #plot for x, y and f(x,y)
 def plot_results(function_name, result):
     """
-    Produce the graphs required in Question 2(b).
-
-    Top graph:
-        f(x,y) over iterations
-
-    Bottom graph:
-        x and y over iterations
+    get two graphs here:
+    1. f(x,y) vs iterations
+    2. x and y vs iterations
     """
 
     iterations = result["iterations"]
 
-    figure, axes = plt.subplots(
-        2,
-        1,
-        figsize=(10, 7),
-        sharex=True
-    )
+    figure, axes = plt.subplots(2, 1, figsize=(10, 7), sharex=True)
 
     #objective function graph
 
-    axes[0].plot(
-        iterations,
-        result["objective_history"],
-        color="red",
-        label="Current f(x,y)"
-    )
+    axes[0].plot(iterations, result["objective_history"], color="red", label="Current f(x,y)")
 
-    axes[0].plot(
-        iterations,
-        result["best_history"],
-        color="black",
-        linestyle="--",
-        linewidth=1.5,
-        label="Best f(x,y)"
-    )
+    axes[0].plot(iterations,result["best_history"],color="black", linestyle="--", linewidth=1.5,label="Best f(x,y)")
 
-    axes[0].set_title(
-        f"{function_name}: Simulated Annealing"
-    )
+    axes[0].set_title(f"{function_name}: Simulated Annealing")
 
     axes[0].set_ylabel("Objective value f(x,y)")
     axes[0].legend()
@@ -328,20 +245,10 @@ def plot_results(function_name, result):
 
     #x and y graph
 
-    axes[1].plot(
-        iterations,
-        result["x_history"],
-        color="blue",
-        label="x"
-    )
+    axes[1].plot(iterations, result["x_history"], color="blue", label="x")
 
-    axes[1].plot(
-        iterations,
-        result["y_history"],
-        color="green",
-        linestyle="--",
-        label="y"
-    )
+    axes[1].plot(iterations, result["y_history"], color="green", linestyle="--", label="y")
+
 
     axes[1].set_xlabel("Iteration")
     axes[1].set_ylabel("Value")
@@ -350,25 +257,16 @@ def plot_results(function_name, result):
 
     plt.tight_layout()
 
-    output_filename = (
-        function_name.lower().replace(" ", "_")
-        + "_simulated_annealing.png"
-    )
+    output_filename = (function_name.lower().replace(" ", "_")+ "_simulated_annealing.png")
 
-    plt.savefig(
-        output_filename,
-        dpi=200
-    )
-
+    plt.savefig(output_filename,dpi=200)
     plt.close()
 
     print(f"Graph saved as: {output_filename}")
 
 
 def run_normal():
-    print("\n" + "#" * 50)
     print("RUNNING WITH NORMAL DEFAULTS")
-    print("#" * 50)
     
     problems = [
         {
@@ -400,13 +298,7 @@ def run_normal():
         n_runs = 1
 
         for run_number in range(n_runs):
-            result = simulated_annealing(
-                objective_function=problem["function"],
-                bounds=problem["bounds"],
-                mode="min",
-                **problem["params"],
-                seed=42 + run_number
-            )
+            result = simulated_annealing(objective_function=problem["function"], bounds=problem["bounds"],mode="min", **problem["params"],seed=42 + run_number)
 
             if best_result is None or result["best_value"] < best_result["best_value"]:
                 best_result = result
@@ -425,16 +317,11 @@ def run_normal():
         print(f"Best found at iteration = {best_iteration}")
         print(f"Temperature at best = {best_temperature:.1f}")
 
-        plot_results(
-            function_name=problem["name"],
-            result=best_result
-        )
+        plot_results(function_name=problem["name"], result=best_result)
 
 
 def run_fine_tuned():
-    print("\n" + "#" * 50)
-    print("RUNNING WITH FINE-TUNED PARAMETERS (5 Restarts)")
-    print("#" * 50)
+    print("FINE-TUNED PARAMETERS (5 Restarts)")
     
     problems = [
         {
@@ -458,9 +345,7 @@ def run_fine_tuned():
     ]
 
     for problem in problems:
-        print("\n" + "=" * 50)
         print(f"Running {problem['name']}")
-        print("=" * 50)
 
         best_result = None
         n_runs = 5
@@ -491,10 +376,7 @@ def run_fine_tuned():
         print(f"Best found at iteration = {best_iteration}")
         print(f"Temperature at best = {best_temperature:.1f}")
 
-        plot_results(
-            function_name=problem["name"],
-            result=best_result
-        )
+        plot_results(function_name=problem["name"], result=best_result)
 
 def main():
     run_normal()
