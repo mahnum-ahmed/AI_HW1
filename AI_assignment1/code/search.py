@@ -15,39 +15,8 @@ aStarSearch and dijkstraSearch functions here that work on either subclass
 purely through this interface.
 """
 
-#hello areebs, yaar wu for coherence, mae sure this stuff remains contant, read before coding
-#
-#1. aStarSearch and dijkstraSearch both give back 3 things:
-#   (actions, cost, nodesExpanded)
-#   actions = list of moves from start to goal
-#   cost = total cost of that route
-#   nodesExpanded = how many nodes the search opened up
-#   if there is no route they give back ([], float('inf'), nodesExpanded)
-#
-#2. the search functions only get the problem, nothing else. so start and
-#   goal must live inside the problem. CourierDelivery should take
-#   (start, goal) when we make it, like CourierDelivery(start, goal), and
-#   getHeuristic should use that stored goal.
-#   for stopovers just make a new CourierDelivery(a, b) for each leg
-#   (hub -> stop1, stop1 -> stop2 ... last stop -> hub) and run
-#   aStarSearch on each one
-#
-#3. for courier, let the action be the name of the area we go to next.
-#   getCostOfActions needs the start area so keep it saved in the object
-#
-#4. states have to be hashable. grid state = (row, col), courier state =
-#   the area name as a string
-#
-#5. step costs must be positive. for road types keep every multiplier at
-#   1 or more (M = 1, S >= 1, N >= 1) so the distances in heuristics.csv
-#   never go over the real cost. then A* still gives the best route
-#
-#6. a node counts as expanded when it is taken out of the queue and we
-#   look at its neighbours, not when it is just added. same rule for A*
-#   and Dijkstra so the comparison is fair
-#
-#7. searchWithStopovers (bottom of this file) is yours, Q1d
-
+import copy
+import itertools
 import util
 
 
@@ -121,7 +90,7 @@ def aStarSearch(problem):
     tracking/returning the total cost and number of nodes expanded, since
     the assignment asks you to report these for the comparative analysis.
     """
-    #A* is the same search as Dijkstra, just with the heuristic switched on
+    #A* is the same search as Dijkstra but the h has a non-zero value
     return runSearch(problem, True)
 
 
@@ -134,7 +103,7 @@ def dijkstraSearch(problem):
     Like aStarSearch, this must work generically on any SearchProblem.
     You may reuse/adapt your CS 102 - DSA implementation here.
     """
-    #same search, heuristic switched off so only the cost so far matters
+    #just set h=0, so f=g
     return runSearch(problem, False)
 
 
@@ -155,31 +124,64 @@ def searchWithStopovers(problem, stopovers):
     which stopovers were visited (see assignment spec for exact output
     requirements).
     """
-    #yaar so claude suggested this approach, dekhlena:
-    #1. for every pair of stops make a CourierDelivery(a, b), run
-    #   aStarSearch on it and save the cost in a small table
-    #2. there are only 17 areas so just try every order of the stops and
-    #   keep the cheapest one (hub at the start and at the end)
-    #3. stick the legs together into one full route
-    "*** YOUR STOPOVER-ROUTING CODE HERE ***"
-    util.raiseNotDefined()
+    hub = problem.getStartState()
+    #take out the hub and repeats from the stopovers, we are already at the hub
+    stopovers = [stop for stop in dict.fromkeys(stopovers) if stop != hub]
+    points = [hub] + stopovers
+    #run A* once for every pair of places and save the route and cost
+    #(the same place to itself costs 0 and needs no moves)
+    legRoute = {}
+    legCost = {}
+    for a in points:
+        for b in points:
+            if a == b:
+                legRoute[(a, b)] = []
+                legCost[(a, b)] = 0
+                continue
+            #same problem but with a different start and goal
+            leg = copy.copy(problem)
+            leg.start = a
+            leg.goal = b
+            actions, cost, expanded = aStarSearch(leg)
+            legRoute[(a, b)] = actions
+            legCost[(a, b)] = cost
+    #try every order of the stopovers and keep the cheapest trip
+    #every trip starts at the hub and ends at the hub
+    bestCost = float('inf')
+    bestOrder = None
+    for order in itertools.permutations(stopovers):
+        stops = [hub] + list(order) + [hub]
+        total = 0
+        for i in range(len(stops) - 1):
+            total += legCost[(stops[i], stops[i + 1])]
+        if total < bestCost:
+            bestCost = total
+            bestOrder = list(order)
+    #no order works (some stopover cannot be reached)
+    if bestOrder is None:
+        return [], float('inf'), []
+    #stick the legs of the best order together
+    #for courier the actions are area names, so the route is a list of areas
+    stops = [hub] + bestOrder + [hub]
+    route = [hub]
+    for i in range(len(stops) - 1):
+        route += legRoute[(stops[i], stops[i + 1])]
+
+    return route, bestCost, bestOrder
 
 
 #everything below is the extra stuff we added to make A* and Dijkstra work
 
 def runSearch(problem, withHeuristic):
-    #does the actual searching for both A* and Dijkstra
-    #withHeuristic True = A*, False = Dijkstra
-    #it only uses the SearchProblem functions so it works for the robot
-    #grid and the courier map without any changes
+    #does the actual searching for both A* and Dijkstra withHeuristic True = A*, False = Dijkstra
+    #it only uses the SearchProblem functions so it works for the robot grid and the courier map without any changes
     start = problem.getStartState()
 
     #cheapest cost we have found so far for each state
     costSoFar = {start: 0}
 
-    #for each state, the state we came from and the move we made to get there
+    #for each state the state we came from(i.e prev state) and the move we made to get there
     cameFrom = {start: None}
-
     queue = util.PriorityQueue()
     if withHeuristic:
         queue.push((start, 0), problem.getHeuristic(start))
@@ -191,18 +193,15 @@ def runSearch(problem, withHeuristic):
     while not queue.isEmpty():
         state, g = queue.pop()
 
-        #skip old entries, we found a cheaper way to this state after adding it
+        #skip old (stale) entries if a better way has been found(i also mention this in my rough work)
         if g > costSoFar[state]:
             continue
-
-        expanded += 1
-
+        expanded += 1 # one more node visited/expanded
         if problem.isGoalState(state):
             return getActions(cameFrom, state), g, expanded
 
         for nextState, action, stepCost in problem.getSuccessors(state):
             newG = g + stepCost
-
             #only keep it if this is a cheaper way to get there
             if nextState in costSoFar and newG >= costSoFar[nextState]:
                 continue
@@ -215,13 +214,12 @@ def runSearch(problem, withHeuristic):
                 priority += problem.getHeuristic(nextState)
             queue.push((nextState, newG), priority)
 
-    #queue ran out without reaching the goal, so there is no route
+    # if queue is empty and goal not reached, that means no route exists.
     return [], float('inf'), expanded
 
 
 def getActions(cameFrom, goalState):
-    #walk backwards from the goal to the start collecting the moves,
-    #then flip the list so it reads start to goal
+    #backtrack from the goal to hub-> then reverse it to show path
     actions = []
     state = goalState
     while cameFrom[state] is not None:
